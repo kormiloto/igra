@@ -1,0 +1,42 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Project Skyroll"
+config/description="A skybound 3D surface-puzzle adventure across thirty handcrafted levels."
+config/version="1.0.0"
+config/icon="res://assets/ui/app_icon.png"
+run/main_scene="res://scenes/boot.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+boot_splash/bg_color=Color(0.02, 0.055, 0.11, 1)
+boot_splash/image="res://assets/ui/app_icon.png"
+
+
+[autoload]
+
+SaveManager="*res://autoload/save_manager.gd"
+PlatformService="*res://autoload/platform_service.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/vsync/vsync_mode=1
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.04, 0.075, 0.14, 1)
+anti_aliasing/quality/msaa_3d=2

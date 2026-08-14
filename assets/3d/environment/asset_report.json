@@ -1,0 +1,224 @@
+{
+  "pipeline": "Skyroll Sale-Ready Blender-to-Godot",
+  "blender_version": "5.2.0 LTS",
+  "source": "assets/source/blender/skyroll_sale_ready_kit.blend",
+  "preview": "assets/3d/previews/sale_ready_kit.png",
+  "assets": [
+    {
+      "name": "w1_block_a",
+      "path": "assets/3d/environment/w1_block_a.glb",
+      "triangles": 3240,
+      "materials": 4,
+      "bytes": 3281152,
+      "triangle_budget": 3500
+    },
+    {
+      "name": "w1_block_b",
+      "path": "assets/3d/environment/w1_block_b.glb",
+      "triangles": 3240,
+      "materials": 4,
+      "bytes": 3281152,
+      "triangle_budget": 3500
+    },
+    {
+      "name": "w1_block_c",
+      "path": "assets/3d/environment/w1_block_c.glb",
+      "triangles": 3240,
+      "materials": 4,
+      "bytes": 3281152,
+      "triangle_budget": 3500
+    },
+    {
+      "name": "w2_block_a",
+      "path": "assets/3d/environment/w2_block_a.glb",
+      "triangles": 1404,
+      "materials": 3,
+      "bytes": 2731776,
+      "triangle_budget": 4500
+    },
+    {
+      "name": "w2_block_b",
+      "path": "assets/3d/environment/w2_block_b.glb",
+      "triangles": 1404,
+      "materials": 3,
+      "bytes": 2731776,
+      "triangle_budget": 4500
+    },
+    {
+      "name": "w2_block_c",
+      "path": "assets/3d/environment/w2_block_c.glb",
+      "triangles": 1404,
+      "materials": 3,
+      "bytes": 2731776,
+      "triangle_budget": 4500
+    },
+    {
+      "name": "w3_block_a",
+      "path": "assets/3d/environment/w3_block_a.glb",
+      "triangles": 540,
+      "materials": 2,
+      "bytes": 3114304,
+      "triangle_budget": 4000
+    },
+    {
+      "name": "w3_block_b",
+      "path": "assets/3d/environment/w3_block_b.glb",
+      "triangles": 540,
+      "materials": 2,
+      "bytes": 3114304,
+      "triangle_budget": 4000
+    },
+    {
+      "name": "w3_block_c",
+      "path": "assets/3d/environment/w3_block_c.glb",
+      "triangles": 540,
+      "materials": 2,
+      "bytes": 3114304,
+      "triangle_budget": 4000
+    },
+    {
+      "name": "w1_tile_normal",
+      "path": "assets/3d/environment/w1_tile_normal.glb",
+      "triangles": 324,
+      "materials": 2,
+      "bytes": 3200380,
+      "triangle_budget": 3000
+    },
+    {
+      "name": "w2_tile_normal",
+      "path": "assets/3d/environment/w2_tile_normal.glb",
+      "triangles": 1212,
+      "materials": 2,
+      "bytes": 2727992,
+      "triangle_budget": 3500
+    },
+    {
+      "name": "w2_tile_ice",
+      "path": "assets/3d/environment/w2_tile_ice.glb",
+      "triangles": 1392,
+      "materials": 4,
+      "bytes": 2736132,
+      "triangle_budget": 4000
+    },
+    {
+      "name": "w3_tile_normal",
+      "path": "assets/3d/environment/w3_tile_normal.glb",
+      "triangles": 108,
+      "materials": 1,
+      "bytes": 3101408,
+      "triangle_budget": 3000
+    },
+    {
+      "name": "w3_tile_hazard",
+      "path": "assets/3d/environment/w3_tile_hazard.glb",
+      "triangles": 1352,
+      "materials": 3,
+      "bytes": 3138884,
+      "triangle_budget": 4000
+    },
+    {
+      "name": "w3_tile_collapse",
+      "path": "assets/3d/environment/w3_tile_collapse.glb",
+      "triangles": 756,
+      "materials": 3,
+      "bytes": 3121292,
+      "triangle_budget": 3500
+    },
+    {
+      "name": "sky_core",
+      "path": "assets/3d/environment/sky_core.glb",
+      "triangles": 880,
+      "materials": 3,
+      "bytes": 26372,
+      "triangle_budget": 4500
+    },
+    {
+      "name": "sunfruit",
+      "path": "assets/3d/environment/sunfruit.glb",
+      "triangles": 2660,
+      "materials": 4,
+      "bytes": 76964,
+      "triangle_budget": 3500
+    },
+    {
+      "name": "portal_w1",
+      "path": "assets/3d/environment/portal_w1.glb",
+      "triangles": 2480,
+      "materials": 4,
+      "bytes": 3260536,
+      "triangle_budget": 5500
+    },
+    {
+      "name": "portal_w2",
+      "path": "assets/3d/environment/portal_w2.glb",
+      "triangles": 2480,
+      "materials": 4,
+      "bytes": 2761256,
+      "triangle_budget": 5500
+    },
+    {
+      "name": "portal_w3",
+      "path": "assets/3d/environment/portal_w3.glb",
+      "triangles": 2480,
+      "materials": 4,
+      "bytes": 3168424,
+      "triangle_budget": 5500
+    },
+    {
+      "name": "aeri",
+      "path": "assets/3d/environment/aeri.glb",
+      "triangles": 4948,
+      "materials": 3,
+      "bytes": 122980,
+      "triangle_budget": 7000
+    },
+    {
+      "name": "cloud_bank_a",
+      "path": "assets/3d/environment/cloud_bank_a.glb",
+      "triangles": 1208,
+      "materials": 2,
+      "bytes": 29928,
+      "triangle_budget": 8000
+    },
+    {
+      "name": "cloud_bank_b",
+      "path": "assets/3d/environment/cloud_bank_b.glb",
+      "triangles": 1000,
+      "materials": 2,
+      "bytes": 25224,
+      "triangle_budget": 8000
+    },
+    {
+      "name": "cloud_bank_c",
+      "path": "assets/3d/environment/cloud_bank_c.glb",
+      "triangles": 1016,
+      "materials": 2,
+      "bytes": 25768,
+      "triangle_budget": 8000
+    },
+    {
+      "name": "landmark_w1",
+      "path": "assets/3d/environment/landmark_w1.glb",
+      "triangles": 3380,
+      "materials": 5,
+      "bytes": 3289904,
+      "triangle_budget": 14000
+    },
+    {
+      "name": "landmark_w2",
+      "path": "assets/3d/environment/landmark_w2.glb",
+      "triangles": 3550,
+      "materials": 6,
+      "bytes": 2793728,
+      "triangle_budget": 14000
+    },
+    {
+      "name": "landmark_w3",
+      "path": "assets/3d/environment/landmark_w3.glb",
+      "triangles": 1746,
+      "materials": 4,
+      "bytes": 3149640,
+      "triangle_budget": 14000
+    }
+  ]
+}

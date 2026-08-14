@@ -1,0 +1,53 @@
+{
+  "schema_version": 2,
+  "pipeline": "Skyroll Sale-Ready Blender-to-Godot",
+  "blender_baseline": "5.2 LTS",
+  "godot_baseline": "4.7",
+  "coordinate_convention": "Blender Z-up source; glTF converts to Godot Y-up; asset front is +Z in Godot",
+  "source_assets": [
+    {
+      "id": "rough_block_wall",
+      "provider": "Poly Haven",
+      "page": "https://polyhaven.com/a/rough_block_wall",
+      "license": "CC0 1.0",
+      "license_page": "https://polyhaven.com/license",
+      "resolution": "1k",
+      "usage": "Retained reference source; runtime sale-ready kit is texture-independent stylized geometry",
+      "files": [
+        {"name": "rough_block_wall_diff_1k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rough_block_wall/rough_block_wall_diff_1k.jpg", "md5": "c25f40a19ba91fe0f50a9f4fc5eb5dbf"},
+        {"name": "rough_block_wall_nor_gl_1k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rough_block_wall/rough_block_wall_nor_gl_1k.jpg", "md5": "c72a22b35833cad334632ee6a3db381f"},
+        {"name": "rough_block_wall_rough_1k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rough_block_wall/rough_block_wall_rough_1k.jpg", "md5": "bc98be015d4d59403ecf6e3736698bd6"},
+        {"name": "rough_block_wall_ao_1k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rough_block_wall/rough_block_wall_ao_1k.jpg", "md5": "cd790e63e0fd5c6e1d6a17f183d8c89f"}
+      ]
+    }
+  ],
+  "outputs": [
+    {"name": "w1_block_a", "max_triangles": 3500, "max_materials": 4},
+    {"name": "w1_block_b", "max_triangles": 3500, "max_materials": 4},
+    {"name": "w1_block_c", "max_triangles": 3500, "max_materials": 4},
+    {"name": "w2_block_a", "max_triangles": 4500, "max_materials": 4},
+    {"name": "w2_block_b", "max_triangles": 4500, "max_materials": 4},
+    {"name": "w2_block_c", "max_triangles": 4500, "max_materials": 4},
+    {"name": "w3_block_a", "max_triangles": 4000, "max_materials": 3},
+    {"name": "w3_block_b", "max_triangles": 4000, "max_materials": 3},
+    {"name": "w3_block_c", "max_triangles": 4000, "max_materials": 3},
+    {"name": "w1_tile_normal", "max_triangles": 3000, "max_materials": 4},
+    {"name": "w2_tile_normal", "max_triangles": 3500, "max_materials": 4},
+    {"name": "w2_tile_ice", "max_triangles": 4000, "max_materials": 6},
+    {"name": "w3_tile_normal", "max_triangles": 3000, "max_materials": 4},
+    {"name": "w3_tile_hazard", "max_triangles": 4000, "max_materials": 3},
+    {"name": "w3_tile_collapse", "max_triangles": 3500, "max_materials": 3},
+    {"name": "sky_core", "max_triangles": 4500, "max_materials": 3},
+    {"name": "sunfruit", "max_triangles": 3500, "max_materials": 4},
+    {"name": "portal_w1", "max_triangles": 5500, "max_materials": 4},
+    {"name": "portal_w2", "max_triangles": 5500, "max_materials": 4},
+    {"name": "portal_w3", "max_triangles": 5500, "max_materials": 4},
+    {"name": "aeri", "max_triangles": 7000, "max_materials": 6},
+    {"name": "cloud_bank_a", "max_triangles": 8000, "max_materials": 2},
+    {"name": "cloud_bank_b", "max_triangles": 8000, "max_materials": 2},
+    {"name": "cloud_bank_c", "max_triangles": 8000, "max_materials": 2},
+    {"name": "landmark_w1", "max_triangles": 14000, "max_materials": 6},
+    {"name": "landmark_w2", "max_triangles": 14000, "max_materials": 6},
+    {"name": "landmark_w3", "max_triangles": 14000, "max_materials": 6}
+  ]
+}
