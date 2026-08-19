@@ -15,7 +15,7 @@ config/description="A skybound 3D surface-puzzle adventure across thirty handcra
 config/version="1.0.0"
 config/icon="res://assets/ui/app_icon.png"
 run/main_scene="res://scenes/boot.tscn"
-config/features=PackedStringArray("4.7", "GL Compatibility")
+config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/bg_color=Color(0.02, 0.055, 0.11, 1)
 boot_splash/image="res://assets/ui/app_icon.png"
 
@@ -36,7 +36,11 @@ window/vsync/vsync_mode=1
 
 [rendering]
 
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="mobile"
+renderer/rendering_method.web="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.04, 0.075, 0.14, 1)
-anti_aliasing/quality/msaa_3d=2
+anti_aliasing/quality/msaa_3d=0
+scaling_3d/mode=1
+scaling_3d/scale=0.50
+scaling_3d/fsr_sharpness=0.2

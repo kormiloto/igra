@@ -3,11 +3,29 @@ extends Node3D
 
 const AUDIO_SCRIPT := preload("res://scripts/procedural_audio.gd")
 const UI := preload("res://scripts/skyroll_ui.gd")
+const W1_SKY_PANORAMA: Texture2D = preload("res://assets/textures/sky/sunflowers_puresky_4k.hdr")
+const LEGACY_SKY_PANORAMA: Texture2D = preload("res://assets/textures/sky/high_altitude_clouds.hdr")
 const CLOUD_SCENES: Array[PackedScene] = [
 	preload("res://assets/3d/environment/cloud_bank_a.glb"),
 	preload("res://assets/3d/environment/cloud_bank_b.glb"),
 	preload("res://assets/3d/environment/cloud_bank_c.glb")
 ]
+const W1_CLOUDY_MOUNTAIN_SCENE: PackedScene = preload("res://assets/3d/environment/cloudy_mountain_w1.glb")
+const W1_SKY_SHADER := """
+shader_type sky;
+render_mode disable_fog;
+
+uniform sampler2D panorama : source_color, filter_linear_mipmap;
+
+void sky() {
+	vec2 uv = vec2(fract(SKY_COORDS.x + 0.18), SKY_COORDS.y);
+	vec3 photographed = texture(panorama, uv).rgb * 0.72;
+	float altitude = clamp(EYEDIR.y * 0.72 + 0.38, 0.0, 1.0);
+	vec3 clear_blue = mix(vec3(0.10, 0.48, 0.82), vec3(0.015, 0.20, 0.62), altitude);
+	float cloud_luma = smoothstep(0.46, 1.12, dot(photographed, vec3(0.2126, 0.7152, 0.0722)));
+	COLOR = mix(clear_blue, vec3(0.96, 0.985, 1.0), cloud_luma * 0.82);
+}
+"""
 const LANDMARK_SCENES := {
 	1: preload("res://assets/3d/environment/landmark_w1.glb"),
 	2: preload("res://assets/3d/environment/landmark_w2.glb"),
@@ -63,7 +81,7 @@ func _ready() -> void:
 	add_child(camera)
 	camera.setup(player)
 	camera.camera_shake_enabled = camera_shake_enabled
-	camera.global_position = player.global_position - player.current_forward() * 6.6 + player.current_up() * 4.2
+	camera.global_position = player.global_position - player.current_forward() * camera.follow_distance + player.current_up() * camera.follow_height
 	_build_hud()
 	time_remaining = level.time_limit
 	running = true
@@ -161,17 +179,22 @@ func _build_environment() -> void:
 		[Color("210c35"), Color("a93e59"), Color("ffb25b")]
 	]
 	var palette: Array = sky_palettes[level.world - 1]
-	var sky_material := ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = palette[0]
-	sky_material.sky_horizon_color = palette[1]
-	sky_material.sky_curve = 0.18
-	sky_material.sun_angle_max = 12.0
-	sky_material.sun_curve = 0.07
-	sky_material.ground_bottom_color = palette[0].darkened(0.62)
-	sky_material.ground_horizon_color = palette[2].darkened(0.18)
-	sky_material.ground_curve = 0.08
+	var sky_material: Material
+	if level.world == 1:
+		var shader := Shader.new()
+		shader.code = W1_SKY_SHADER
+		var authored_sky := ShaderMaterial.new()
+		authored_sky.shader = shader
+		authored_sky.set_shader_parameter("panorama", W1_SKY_PANORAMA)
+		sky_material = authored_sky
+	else:
+		var panorama_sky := PanoramaSkyMaterial.new()
+		panorama_sky.panorama = LEGACY_SKY_PANORAMA
+		panorama_sky.energy_multiplier = 0.78
+		sky_material = panorama_sky
 	var sky := Sky.new()
 	sky.sky_material = sky_material
+	sky.process_mode = Sky.PROCESS_MODE_QUALITY
 	environment.background_mode = Environment.BG_SKY
 	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
@@ -180,13 +203,28 @@ func _build_environment() -> void:
 	environment.fog_enabled = true
 	environment.fog_light_color = palette[1].lightened(0.10)
 	environment.fog_light_energy = 0.46
-	environment.fog_density = [0.0034, 0.0042, 0.0038][level.world - 1]
-	environment.fog_sky_affect = 0.52
+	environment.fog_density = [0.0012, 0.0042, 0.0038][level.world - 1]
+	environment.fog_sky_affect = 0.16 if level.world == 1 else 0.52
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.adjustment_enabled = true
-	environment.adjustment_brightness = [0.86, 1.0, 0.96][level.world - 1]
-	environment.adjustment_contrast = [1.10, 1.13, 1.16][level.world - 1]
-	environment.adjustment_saturation = [0.96, 0.94, 0.92][level.world - 1]
+	environment.adjustment_brightness = [0.92, 1.0, 0.96][level.world - 1]
+	environment.adjustment_contrast = [1.06, 1.13, 1.16][level.world - 1]
+	environment.adjustment_saturation = [1.0, 0.94, 0.92][level.world - 1]
+	if level.world == 1:
+		var low_end_gpu := _uses_integrated_graphics_profile()
+		environment.glow_enabled = not low_end_gpu
+		environment.glow_intensity = 0.78
+		environment.ssao_enabled = not low_end_gpu
+		environment.ssao_radius = 1.6
+		environment.ssao_intensity = 1.35
+		environment.volumetric_fog_enabled = not low_end_gpu
+		environment.volumetric_fog_density = 0.0014
+		environment.volumetric_fog_albedo = Color("dff7ff")
+		environment.volumetric_fog_emission = Color("79cfff")
+		environment.volumetric_fog_emission_energy = 0.06
+		environment.volumetric_fog_length = 72.0
+		environment.volumetric_fog_detail_spread = 1.8
+		environment.volumetric_fog_ambient_inject = 0.72
 	world_environment.environment = environment
 	add_child(world_environment)
 	var sun := DirectionalLight3D.new()
@@ -319,20 +357,33 @@ func _update_hud() -> void:
 	hud_time.modulate = Color("ff7185") if time_remaining < 10.0 else Color.WHITE
 
 func _build_atmosphere_decor(palette: Array) -> void:
-	for index in range(7):
-		var angle := float(index) / 7.0 * TAU + 0.48
-		var radius := 28.0 + float((index * 7) % 9)
-		var cloud := CLOUD_SCENES[index % CLOUD_SCENES.size()].instantiate() as Node3D
-		cloud.name = "Cloud_%02d" % index
-		cloud.position = Vector3(cos(angle) * radius, -7.0 + float((index * 5) % 12), sin(angle) * radius)
-		cloud.rotation_degrees.y = rad_to_deg(-angle) + float(index * 17)
-		var cloud_scale := 1.55 + float(index % 3) * 0.34
-		cloud.scale = Vector3(cloud_scale, cloud_scale * 0.54, cloud_scale)
-		add_child(cloud)
-		var base_position := cloud.position
-		var drift := cloud.create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		drift.tween_property(cloud, "position", base_position + Vector3(cos(angle + PI * 0.5), 0.28, sin(angle + PI * 0.5)) * 2.4, 12.0 + float(index % 4))
-		drift.tween_property(cloud, "position", base_position, 12.0 + float(index % 4))
+	if level.world == 1:
+		var cloud_count := 3 if _uses_integrated_graphics_profile() else 8
+		for index in range(cloud_count):
+			var angle := float(index) / float(cloud_count) * TAU + 0.38
+			var radius := 24.0 + float((index * 7) % 12)
+			var cloud := CLOUD_SCENES[index % CLOUD_SCENES.size()].instantiate() as Node3D
+			cloud.name = "AncientSkyCloud_%02d" % index
+			cloud.position = Vector3(cos(angle) * radius, -7.5 + float((index * 5) % 13), sin(angle) * radius)
+			cloud.rotation_degrees.y = rad_to_deg(-angle) + float(index * 17)
+			var cloud_scale := 1.65 + float(index % 3) * 0.42
+			cloud.scale = Vector3(cloud_scale, cloud_scale * 0.62, cloud_scale)
+			add_child(cloud)
+			var base_position := cloud.position
+			var drift := cloud.create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			drift.tween_property(cloud, "position", base_position + Vector3(cos(angle + PI * 0.5), 0.22, sin(angle + PI * 0.5)) * 2.0, 14.0 + float(index % 4))
+			drift.tween_property(cloud, "position", base_position, 14.0 + float(index % 4))
+		var mountain_count := 2 if _uses_integrated_graphics_profile() else 4
+		for index in range(mountain_count):
+			var angle := float(index) / float(mountain_count) * TAU + 0.62
+			var mountain := W1_CLOUDY_MOUNTAIN_SCENE.instantiate() as Node3D
+			mountain.name = "CloudyMountain_%02d" % index
+			var radius := 38.0 + float(index % 2) * 7.0
+			mountain.position = Vector3(cos(angle) * radius, -8.5 + float((index * 4) % 9), sin(angle) * radius)
+			mountain.rotation_degrees.y = -rad_to_deg(angle) + float(index * 41)
+			var mountain_scale := 1.35 + float(index % 3) * 0.28
+			mountain.scale = Vector3.ONE * mountain_scale
+			add_child(mountain)
 	for index in range(3):
 		var angle := float(index) / 3.0 * TAU + 0.72
 		var landmark := (LANDMARK_SCENES[level.world] as PackedScene).instantiate() as Node3D
@@ -342,6 +393,10 @@ func _build_atmosphere_decor(palette: Array) -> void:
 		landmark.scale = Vector3.ONE * (1.22 + float(index % 2) * 0.22)
 		add_child(landmark)
 	_add_sky_motes(palette)
+
+func _uses_integrated_graphics_profile() -> bool:
+	var adapter := RenderingServer.get_video_adapter_name().to_lower()
+	return adapter.contains("intel") or adapter.contains("uhd graphics")
 
 func _add_sky_motes(palette: Array) -> void:
 	var motes := CPUParticles3D.new()

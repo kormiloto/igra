@@ -4,6 +4,17 @@
   "blender_baseline": "5.2 LTS",
   "godot_baseline": "4.7",
   "coordinate_convention": "Blender Z-up source; glTF converts to Godot Y-up; asset front is +Z in Godot",
+  "local_source_assets": [
+    {
+      "id": "cloudy_mountain_4k",
+      "provider": "Sketchfab/Fab",
+      "page": "https://sketchfab.com/3d-models/hdri-hq-skies-abovetheclouds-night-panorama-o-06d5d0a925f4465ca04b362b010da53b",
+      "license": "User-provided licensed download",
+      "source": "assets/source/models/sketchfab/cloudy_mountain_4k.glb",
+      "sha256": "BECE8E96C60EEE905A0B691255ECA80D56B74D59AAD9C7983FB7469FF860B97D",
+      "usage": "Optimized distant cloudy mountain formations in World 1 only"
+    }
+  ],
   "source_assets": [
     {
       "id": "rough_block_wall",
@@ -12,12 +23,113 @@
       "license": "CC0 1.0",
       "license_page": "https://polyhaven.com/license",
       "resolution": "1k",
+      "destination": "assets/source/textures/polyhaven/rough_block_wall",
       "usage": "Retained reference source; runtime sale-ready kit is texture-independent stylized geometry",
       "files": [
         {"name": "rough_block_wall_diff_1k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rough_block_wall/rough_block_wall_diff_1k.jpg", "md5": "c25f40a19ba91fe0f50a9f4fc5eb5dbf"},
         {"name": "rough_block_wall_nor_gl_1k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rough_block_wall/rough_block_wall_nor_gl_1k.jpg", "md5": "c72a22b35833cad334632ee6a3db381f"},
         {"name": "rough_block_wall_rough_1k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rough_block_wall/rough_block_wall_rough_1k.jpg", "md5": "bc98be015d4d59403ecf6e3736698bd6"},
         {"name": "rough_block_wall_ao_1k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rough_block_wall/rough_block_wall_ao_1k.jpg", "md5": "cd790e63e0fd5c6e1d6a17f183d8c89f"}
+      ]
+    },
+    {
+      "id": "mossy_stone_wall",
+      "provider": "Poly Haven",
+      "page": "https://polyhaven.com/a/mossy_stone_wall",
+      "license": "CC0 1.0",
+      "license_page": "https://polyhaven.com/license",
+      "resolution": "2k",
+      "destination": "assets/source/textures/polyhaven/mossy_stone_wall",
+      "usage": "World 1 block sides, temple columns, and weathered portal stone",
+      "required_maps": ["diffuse", "normal_gl", "roughness", "ambient_occlusion", "displacement"],
+      "files": [
+        {"name": "mossy_stone_wall_diff_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/mossy_stone_wall/mossy_stone_wall_diff_2k.jpg", "md5": "1f0ff600e455874379c78ab97c7680b4"},
+        {"name": "mossy_stone_wall_nor_gl_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/mossy_stone_wall/mossy_stone_wall_nor_gl_2k.jpg", "md5": "0c40b1b9b731c404bd499389322fffb1"},
+        {"name": "mossy_stone_wall_rough_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/mossy_stone_wall/mossy_stone_wall_rough_2k.jpg", "md5": "c0c8fc6f25386e98fe0ee6bfe4264eda"},
+        {"name": "mossy_stone_wall_ao_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/mossy_stone_wall/mossy_stone_wall_ao_2k.jpg", "md5": "7a893c2e1bee082619114844b4da4750"},
+        {"name": "mossy_stone_wall_disp_2k.png", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/mossy_stone_wall/mossy_stone_wall_disp_2k.png", "md5": "49dc3bb373a83aad87459c5444f748f2"}
+      ]
+    },
+    {
+      "id": "rocky_terrain",
+      "provider": "Poly Haven",
+      "page": "https://polyhaven.com/a/rocky_terrain",
+      "license": "CC0 1.0",
+      "license_page": "https://polyhaven.com/license",
+      "resolution": "2k",
+      "destination": "assets/source/textures/polyhaven/rocky_terrain",
+      "usage": "World 1 gameplay cubes with image-driven physical rock relief",
+      "required_maps": ["diffuse", "normal_gl", "roughness", "ambient_occlusion", "displacement"],
+      "files": [
+        {"name": "rocky_terrain_diff_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rocky_terrain/rocky_terrain_diff_2k.jpg", "md5": "4abb5d65394b6af07752099bd34ddd02"},
+        {"name": "rocky_terrain_nor_gl_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rocky_terrain/rocky_terrain_nor_gl_2k.jpg", "md5": "05034535c6a4d24bf1886bd6331b9d39"},
+        {"name": "rocky_terrain_rough_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rocky_terrain/rocky_terrain_rough_2k.jpg", "md5": "e773e576ac20318199c85ca84abfe2fe"},
+        {"name": "rocky_terrain_ao_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rocky_terrain/rocky_terrain_ao_2k.jpg", "md5": "d97cc27578dcd9a543b12a22e274abd1"},
+        {"name": "rocky_terrain_disp_2k.png", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/rocky_terrain/rocky_terrain_disp_2k.png", "md5": "8146d9555199ee5ca526d2346d97df45"}
+      ]
+    },
+    {
+      "id": "rock_tile_floor",
+      "provider": "Poly Haven",
+      "page": "https://polyhaven.com/a/rock_tile_floor",
+      "license": "CC0 1.0",
+      "license_page": "https://polyhaven.com/license",
+      "resolution": "2k",
+      "destination": "assets/source/textures/polyhaven/rock_tile_floor",
+      "usage": "World 1 walkable paving and the hero island platform",
+      "required_maps": ["diffuse", "normal_gl", "roughness", "ambient_occlusion", "displacement"],
+      "files": [
+        {"name": "rock_tile_floor_diff_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_tile_floor/rock_tile_floor_diff_2k.jpg", "md5": "8aa39c972dc22650694781784d4bc851"},
+        {"name": "rock_tile_floor_nor_gl_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_tile_floor/rock_tile_floor_nor_gl_2k.jpg", "md5": "ee864ce733c6ded5fd7b5ebeb99acb69"},
+        {"name": "rock_tile_floor_rough_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_tile_floor/rock_tile_floor_rough_2k.jpg", "md5": "372fce1b134945b55268e67b584b0cca"},
+        {"name": "rock_tile_floor_ao_2k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_tile_floor/rock_tile_floor_ao_2k.jpg", "md5": "08ddb9f93dad8444a2903770f56e84a5"},
+        {"name": "rock_tile_floor_disp_2k.png", "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/rock_tile_floor/rock_tile_floor_disp_2k.png", "md5": "6b4a636c7b43ac74dbb86f1e2fbd4dcc"}
+      ]
+    },
+    {
+      "id": "rock_face_02",
+      "provider": "Poly Haven",
+      "page": "https://polyhaven.com/a/rock_face_02",
+      "license": "CC0 1.0",
+      "license_page": "https://polyhaven.com/license",
+      "resolution": "1k",
+      "destination": "assets/source/models/polyhaven/rock_face_02_1k",
+      "usage": "Optimized geological detail for the underside of World 1 floating islands",
+      "files": [
+        {"name": "rock_face_02_1k.blend", "url": "https://dl.polyhaven.org/file/ph-assets/Models/blend/1k/rock_face_02/rock_face_02_1k.blend", "md5": "1beb553a9e04382619abb94beb16b2fb"},
+        {"name": "textures/rock_face_02_nor_gl_1k.exr", "url": "https://dl.polyhaven.org/file/ph-assets/Models/exr/1k/rock_face_02/rock_face_02_nor_gl_1k.exr", "md5": "6291b62d995d9730ccc2cb882fedc611"},
+        {"name": "textures/rock_face_02_rough_1k.exr", "url": "https://dl.polyhaven.org/file/ph-assets/Models/exr/1k/rock_face_02/rock_face_02_rough_1k.exr", "md5": "c0b6d2041b5f2c5f2c9a759ad6be2e92"},
+        {"name": "textures/rock_face_02_diff_1k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rock_face_02/rock_face_02_diff_1k.jpg", "md5": "8f3731e5c8e4e5c7f5de983353cf3ee3"}
+      ]
+    },
+    {
+      "id": "fern_02",
+      "provider": "Poly Haven",
+      "page": "https://polyhaven.com/a/fern_02",
+      "license": "CC0 1.0",
+      "license_page": "https://polyhaven.com/license",
+      "resolution": "1k",
+      "destination": "assets/source/models/polyhaven/fern_02_1k",
+      "usage": "Optimized foliage source for World 1 landmark accents",
+      "files": [
+        {"name": "fern_02_1k.blend", "url": "https://dl.polyhaven.org/file/ph-assets/Models/blend/1k/fern_02/fern_02_1k.blend", "md5": "6ad31e08091b148241683d48486be258"},
+        {"name": "textures/fern_02_rough_1k.exr", "url": "https://dl.polyhaven.org/file/ph-assets/Models/exr/1k/fern_02/fern_02_rough_1k.exr", "md5": "1e937f3f3db87e520601f8e94363a5dc"},
+        {"name": "textures/fern_02_alpha_1k.png", "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/1k/fern_02/fern_02_alpha_1k.png", "md5": "1421e5e36946c23a7ddcc907de89025c"},
+        {"name": "textures/fern_02_nor_gl_1k.exr", "url": "https://dl.polyhaven.org/file/ph-assets/Models/exr/1k/fern_02/fern_02_nor_gl_1k.exr", "md5": "c4c2dc925e3ecdb86a6a123a21acfc5b"},
+        {"name": "textures/fern_02_diff_1k.jpg", "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_diff_1k.jpg", "md5": "82c18a6cfd5ae91c37c0e078f591181c"}
+      ]
+    },
+    {
+      "id": "sunflowers_puresky",
+      "provider": "Poly Haven",
+      "page": "https://polyhaven.com/a/sunflowers_puresky",
+      "license": "CC0 1.0",
+      "license_page": "https://polyhaven.com/license",
+      "resolution": "4k",
+      "destination": "assets/source/textures/sky",
+      "usage": "Bright high-contrast World 1 lighting and sky panorama",
+      "files": [
+        {"name": "sunflowers_puresky_4k.hdr", "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/sunflowers_puresky_4k.hdr", "md5": "7ca3349587930ac40b2eb7720e093839"}
       ]
     }
   ],
@@ -31,10 +143,7 @@
     {"name": "w3_block_a", "max_triangles": 4000, "max_materials": 3},
     {"name": "w3_block_b", "max_triangles": 4000, "max_materials": 3},
     {"name": "w3_block_c", "max_triangles": 4000, "max_materials": 3},
-    {"name": "w1_tile_normal", "max_triangles": 3000, "max_materials": 4},
-    {"name": "w2_tile_normal", "max_triangles": 3500, "max_materials": 4},
     {"name": "w2_tile_ice", "max_triangles": 4000, "max_materials": 6},
-    {"name": "w3_tile_normal", "max_triangles": 3000, "max_materials": 4},
     {"name": "w3_tile_hazard", "max_triangles": 4000, "max_materials": 3},
     {"name": "w3_tile_collapse", "max_triangles": 3500, "max_materials": 3},
     {"name": "sky_core", "max_triangles": 4500, "max_materials": 3},
@@ -42,11 +151,12 @@
     {"name": "portal_w1", "max_triangles": 5500, "max_materials": 4},
     {"name": "portal_w2", "max_triangles": 5500, "max_materials": 4},
     {"name": "portal_w3", "max_triangles": 5500, "max_materials": 4},
-    {"name": "aeri", "max_triangles": 7000, "max_materials": 6},
+    {"name": "aeri", "max_triangles": 12000, "max_materials": 7},
     {"name": "cloud_bank_a", "max_triangles": 8000, "max_materials": 2},
     {"name": "cloud_bank_b", "max_triangles": 8000, "max_materials": 2},
     {"name": "cloud_bank_c", "max_triangles": 8000, "max_materials": 2},
-    {"name": "landmark_w1", "max_triangles": 14000, "max_materials": 6},
+    {"name": "cloudy_mountain_w1", "max_triangles": 50000, "max_materials": 3},
+    {"name": "landmark_w1", "max_triangles": 30000, "max_materials": 8},
     {"name": "landmark_w2", "max_triangles": 14000, "max_materials": 6},
     {"name": "landmark_w3", "max_triangles": 14000, "max_materials": 6}
   ]

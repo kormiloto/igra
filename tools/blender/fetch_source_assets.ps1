@@ -5,12 +5,18 @@ param(
 $ErrorActionPreference = 'Stop'
 $manifestPath = Join-Path $PSScriptRoot 'asset_manifest.json'
 $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
-$destination = Join-Path $ProjectRoot 'assets\source\textures\polyhaven\rough_block_wall'
-New-Item -ItemType Directory -Force -Path $destination | Out-Null
-
 foreach ($source in $manifest.source_assets) {
+    $relativeDestination = if ($source.destination) {
+        [string]$source.destination
+    } else {
+        'assets\source\textures\polyhaven\rough_block_wall'
+    }
+    $destination = Join-Path $ProjectRoot $relativeDestination
+    New-Item -ItemType Directory -Force -Path $destination | Out-Null
     foreach ($file in $source.files) {
-        $target = Join-Path $destination $file.name
+        $target = Join-Path $destination ([string]$file.name)
+        $targetDirectory = Split-Path -Parent $target
+        New-Item -ItemType Directory -Force -Path $targetDirectory | Out-Null
         $valid = $false
         if (Test-Path -LiteralPath $target) {
             $actual = (Get-FileHash -LiteralPath $target -Algorithm MD5).Hash.ToLowerInvariant()
@@ -24,7 +30,7 @@ foreach ($source in $manifest.source_assets) {
                 throw "Checksum mismatch for $target (expected $($file.md5), got $actual)"
             }
         }
-        Write-Host "Verified $($file.name)"
+        Write-Host "Verified $($source.id)/$($file.name)"
     }
 }
 

@@ -27,6 +27,7 @@ var start_quaternion := Quaternion.IDENTITY
 var end_quaternion := Quaternion.IDENTITY
 var transition_type := "same"
 var visual: Node3D
+var visual_target_yaw := 0.0
 var input_enabled := true
 
 func setup(level: LevelDefinition, target_board: GridBoard) -> void:
@@ -43,6 +44,14 @@ func _process(delta: float) -> void:
 		_capture_input()
 	if state != MoveState.IDLE and state != MoveState.DEAD:
 		_update_action(delta)
+	_face_visual_to_movement(delta)
+
+func _face_visual_to_movement(delta: float) -> void:
+	if not is_instance_valid(visual):
+		return
+	# Blender +Y exports as Godot local -Z, so the model's natural zero
+	# rotation already faces the mover's forward direction.
+	visual.rotation.y = lerp_angle(visual.rotation.y, visual_target_yaw, minf(delta * 14.0, 1.0))
 
 func request_action(action: String) -> void:
 	if not input_enabled or state == MoveState.DEAD:
@@ -93,6 +102,7 @@ func _capture_input() -> void:
 		request_action("jump")
 
 func _begin_turn(direction: int) -> void:
+	visual_target_yaw = 0.0
 	state = MoveState.TURNING
 	action_elapsed = 0.0
 	action_duration = 0.16
@@ -104,6 +114,7 @@ func _begin_turn(direction: int) -> void:
 	state_changed.emit("Turning")
 
 func _begin_roll(direction_sign: int) -> void:
+	visual_target_yaw = 0.0 if direction_sign > 0 else PI
 	var result := board.resolve_move(surface_cube, surface_normal, forward_axis, direction_sign)
 	if not result.found:
 		_begin_fall(forward_axis * direction_sign)
@@ -125,6 +136,7 @@ func _begin_roll(direction_sign: int) -> void:
 	state_changed.emit("Rolling")
 
 func _begin_jump() -> void:
+	visual_target_yaw = 0.0
 	var result := board.resolve_jump(surface_cube, surface_normal, forward_axis)
 	if not result.found:
 		_begin_fall(forward_axis)
@@ -142,6 +154,7 @@ func _begin_jump() -> void:
 	state_changed.emit("Jumping")
 
 func _begin_fall(move_direction: Vector3i) -> void:
+	visual_target_yaw = 0.0 if Vector3(move_direction).dot(Vector3(forward_axis)) >= 0.0 else PI
 	state = MoveState.FALLING
 	action_elapsed = 0.0
 	action_duration = 0.82
@@ -164,13 +177,11 @@ func _update_action(delta: float) -> void:
 			else:
 				position = start_position.lerp(end_position, eased)
 			basis = Basis(start_quaternion.slerp(end_quaternion, eased)).orthonormalized()
-			visual.rotate_object_local(Vector3.RIGHT, delta * 7.5)
+			visual.position.y = sin(weight * PI) * 0.10
 		MoveState.JUMPING:
 			position = start_position.lerp(end_position, weight) + Vector3(surface_normal) * sin(weight * PI) * 2.0
-			visual.rotate_object_local(Vector3.RIGHT, delta * 9.0)
 		MoveState.FALLING:
 			position = start_position.lerp(end_position, weight * weight)
-			visual.rotate_object_local(Vector3.FORWARD, delta * 5.0)
 	if weight >= 1.0:
 		_complete_action()
 
@@ -185,6 +196,7 @@ func _complete_action() -> void:
 	forward_axis = target_forward
 	position = board.surface_world_position(surface_cube, surface_normal)
 	basis = SurfaceRules.basis_from(surface_normal, forward_axis)
+	visual.position = Vector3.ZERO
 	state = MoveState.IDLE
 	state_changed.emit("Idle")
 	if completed_state in [MoveState.ROLLING, MoveState.JUMPING]:
@@ -204,6 +216,8 @@ func _quadratic_bezier(a: Vector3, b: Vector3, c: Vector3, t: float) -> Vector3:
 func _create_visual(world: int) -> void:
 	visual = AERI_SCENE.instantiate() as Node3D
 	visual.name = "Aeri"
+	visual_target_yaw = 0.0
+	visual.rotation.y = visual_target_yaw
 	add_child(visual)
 	var light := OmniLight3D.new()
 	light.name = "AeriGlow"

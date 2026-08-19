@@ -1,6 +1,6 @@
 # Project Skyroll
 
-Project Skyroll is an original, colorful 3D surface-puzzle game built with Godot 4.7.1. Guide Aeri across the tops, walls, and undersides of floating structures, collect every key, and reach the exit before time runs out.
+Project Skyroll is an original 3D surface-puzzle game built with Godot 4.7.1 Forward+ and Blender 5.2 LTS. Guide the horned spirit Aeri through the bright Ancient Sky Temple and across the tops, walls, and undersides of floating structures.
 
 ## Included
 
@@ -9,7 +9,7 @@ Project Skyroll is an original, colorful 3D surface-puzzle game built with Godot
 - Strict timer, required keys, optional fruit, three-medal results, sequential progression, and unlimited retries.
 - Main menu, story intro, world/level selection, pause, results, options, keyboard rebinding, and gamepad support.
 - Versioned atomic save data and an offline platform adapter ready to be replaced by a Steam implementation.
-- A 27-asset Blender-authored release kit: three distinct block families, authored gameplay tiles, Aeri, collectibles, portals, broad cloud banks, and world-specific landmarks. Runtime art uses generated photoreal albedo scans for weathered crate wood, aged metal, and basalt, with those source images kept outside the exported runtime package.
+- A 27-asset Blender-authored release kit: mossy World 1 temple stone and ruins, authored gameplay tiles, the horned-spirit Aeri, collectibles, portals, broad cloud banks, and world-specific landmarks. CC0 PBR source maps remain reproducible through the checksum-pinned asset manifest.
 - Branded 512 px application icon and boot splash, custom UI, credits and license notice, atmospheric lighting, sky motes, and an original Skyroll menu backdrop. No Kula World assets are included.
 - Original procedural ambient music and collectible, portal, and failure chimes routed through Music/SFX buses.
 

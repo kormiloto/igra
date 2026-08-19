@@ -26,6 +26,10 @@ if (-not $BlenderPath -or -not (Test-Path -LiteralPath $BlenderPath)) {
 
 & (Join-Path $PSScriptRoot 'fetch_source_assets.ps1') -ProjectRoot $ProjectRoot
 
+$characterBuilder = Join-Path $PSScriptRoot 'build_horned_spirit.py'
+& $BlenderPath --background --factory-startup --python-exit-code 1 --python $characterBuilder
+if ($LASTEXITCODE -ne 0) { throw "Blender horned-spirit build failed with exit code $LASTEXITCODE." }
+
 $builder = Join-Path $PSScriptRoot 'build_environment_kit.py'
 & $BlenderPath --background --factory-startup --python-exit-code 1 --python $builder
 if ($LASTEXITCODE -ne 0) { throw "Blender asset build failed with exit code $LASTEXITCODE." }

@@ -1,5 +1,7 @@
 extends SceneTree
 
+const LEVEL_SOLVER := preload("res://data/level_solver.gd")
+
 var failures: Array[String] = []
 var assertions := 0
 
@@ -9,11 +11,14 @@ func _initialize() -> void:
 func _run() -> void:
 	_test_surface_rules()
 	_test_catalog()
+	_test_world_one_puzzles()
+	_test_global_difficulty_curve()
 	_test_progression()
 	_test_save_migration()
 	_test_art_pipeline()
 	_test_input_buffer()
 	await _test_gameplay_boot()
+	await _test_authored_playthroughs()
 	if failures.is_empty():
 		print("PASS: %d Skyroll surface assertions" % assertions)
 		quit(0)
@@ -64,7 +69,7 @@ func _test_catalog() -> void:
 		_expect(not ids.has(level.id), "Duplicate level id: %s" % level.id)
 		ids[level.id] = true
 		_expect(level.cells.size() >= 6, "%s has too few surface faces" % level.id)
-		_expect(level.route.size() == level.cells.size(), "%s route and surface count diverge" % level.id)
+		_expect(not level.route.is_empty(), "%s needs a canonical solution route" % level.id)
 		_expect(level.time_limit > level.par_time, "%s time limit must exceed par" % level.id)
 		_expect(level.keys.size() >= 2, "%s needs at least two keys" % level.id)
 		_expect(level.exit_key != level.route[0], "%s exit overlaps spawn" % level.id)
@@ -78,8 +83,8 @@ func _test_catalog() -> void:
 		_expect(_objectives_reachable(level, cell_keys), "%s objectives are not reachable through the surface graph" % level.id)
 		for special_key in level.special_tiles:
 			_expect(special_key not in level.keys and special_key not in level.fruits, "%s special face overlaps a pickup" % level.id)
-			if level.special_tiles[special_key] == "hazard":
-				_expect(_hazard_is_jumpable(level, special_key, cell_keys), "%s contains a hazard that cannot be cleared by jumping" % level.id)
+			if level.special_tiles[special_key] in ["ice", "hazard", "collapse"]:
+				_expect(_special_is_jumpable(level, special_key, cell_keys), "%s contains an irreversible special face that cannot be jumped" % level.id)
 	var level_two_normals := {}
 	for cell in levels[1].cells:
 		level_two_normals[str(cell.normal)] = true
@@ -90,20 +95,90 @@ func _test_catalog() -> void:
 		level_three_normals[str(cell.normal)] = true
 	_expect(level_three_normals.size() >= 3, "Level 3 must reach top, side, and underside orientations")
 
-func _hazard_is_jumpable(level: LevelDefinition, hazard_key: String, cell_map: Dictionary) -> bool:
-	var index := level.route.find(hazard_key)
-	if index <= 0 or index >= level.route.size() - 1:
+func _test_world_one_puzzles() -> void:
+	var min_actions := [10, 15, 18, 22, 28, 32, 34, 36, 40, 45]
+	var max_actions := [14, 22, 25, 28, 36, 38, 44, 46, 50, 60]
+	var min_normals := [1, 2, 3, 4, 4, 5, 5, 5, 6, 6]
+	var fruit_counts := [2, 2, 2, 3, 3, 3, 4, 4, 4, 4]
+	for number in range(1, 11):
+		var level := LevelCatalog.get_level("W1L%02d" % number)
+		var solution: Dictionary = LEVEL_SOLVER.solve(level)
+		_expect(solution.found, "%s authored puzzle has no complete solution" % level.id)
+		_expect(solution.route == level.route, "%s canonical route must match the shortest solver route" % level.id)
+		_expect(solution.action_count >= min_actions[number - 1], "%s has an unintended shortcut (%d actions)" % [level.id, solution.action_count])
+		_expect(solution.action_count <= max_actions[number - 1], "%s solution is longer than its difficulty target (%d actions)" % [level.id, solution.action_count])
+		_expect(level.keys.size() == (2 if number <= 3 else 3), "%s has the wrong required-key count" % level.id)
+		_expect(level.fruits.size() == fruit_counts[number - 1], "%s has the wrong optional-fruit count" % level.id)
+		_expect(is_equal_approx(level.par_time, 12.0 + solution.action_count * 0.75), "%s par time must derive from optimal actions" % level.id)
+		_expect(is_equal_approx(level.time_limit, 30.0 + solution.action_count * 1.35), "%s limit must derive from optimal actions" % level.id)
+		var cell_keys := {}
+		var normals := {}
+		for cell in level.cells:
+			cell_keys[cell.key()] = true
+			normals[str(cell.normal)] = true
+		for route_key in level.route:
+			_expect(cell_keys.has(route_key), "%s route references a missing face" % level.id)
+		_expect(normals.size() >= min_normals[number - 1], "%s does not use enough gravity orientations" % level.id)
+		var branching_faces := 0
+		for degree in LEVEL_SOLVER.cell_degrees(level.cells).values():
+			if int(degree) >= 3:
+				branching_faces += 1
+		_expect(branching_faces > 0, "%s must contain a real route choice" % level.id)
+		for special_type in level.special_tiles.values():
+			_expect(special_type not in ["ice", "hazard", "collapse"], "%s must remain a pure spatial puzzle" % level.id)
+
+func _test_global_difficulty_curve() -> void:
+	var motif_signatures := {}
+	for number in range(1, 11):
+		var spec: Dictionary = LevelCatalog._advanced_level_spec(number)
+		var signature_parts: Array[String] = []
+		for command in spec.spine:
+			signature_parts.append(command[0])
+		signature_parts.append("exit:%s" % str(spec.exit_dir))
+		for command in spec.exit_path:
+			signature_parts.append(command[0])
+		for branch in spec.branches:
+			signature_parts.append("branch:%s" % str(branch.direction))
+			for command in branch.commands:
+				signature_parts.append(command[0])
+		var signature := "|".join(signature_parts)
+		_expect(not motif_signatures.has(signature), "Advanced level %d repeats an earlier path topology" % number)
+		motif_signatures[signature] = true
+
+	var previous_actions := -1
+	for level in LevelCatalog.all_levels():
+		var solution: Dictionary = LEVEL_SOLVER.solve(level)
+		_expect(solution.found, "%s must remain solvable with live special-tile rules" % level.id)
+		_expect(solution.route == level.route, "%s must publish its special-aware shortest route" % level.id)
+		_expect(solution.action_count > previous_actions, "%s resets or stalls the 30-level difficulty curve" % level.id)
+		previous_actions = solution.action_count
+		_expect(is_equal_approx(level.par_time, 12.0 + solution.action_count * 0.75), "%s par time must scale from real solution actions" % level.id)
+		_expect(is_equal_approx(level.time_limit, 30.0 + solution.action_count * 1.35), "%s time limit must scale from real solution actions" % level.id)
+		var normals := {}
+		for cell in level.cells:
+			normals[str(cell.normal)] = true
+		if level.world == 2:
+			_expect(normals.size() >= 5, "%s must continue above World 1's orientation lessons" % level.id)
+			_expect("ice" in level.special_tiles.values(), "%s must retain Cloud Machinery's ice pressure" % level.id)
+		elif level.world == 3:
+			_expect(normals.size() == 6, "%s must use every gravity orientation" % level.id)
+			for required_special in ["ice", "hazard", "collapse"]:
+				_expect(required_special in level.special_tiles.values(), "%s must combine %s with its spatial puzzle" % [level.id, required_special])
+
+func _special_is_jumpable(level: LevelDefinition, special_key: String, cell_map: Dictionary) -> bool:
+	var special := level.cell_by_key(special_key)
+	if special == null:
 		return false
-	var previous := level.cell_by_key(level.route[index - 1])
-	var hazard := level.cell_by_key(hazard_key)
-	var following := level.cell_by_key(level.route[index + 1])
-	if previous == null or hazard == null or following == null:
-		return false
-	if previous.normal != hazard.normal or hazard.normal != following.normal:
-		return false
-	var forward := hazard.cube - previous.cube
-	var jump := SurfaceRules.jump_result(cell_map, previous.cube, previous.normal, forward)
-	return jump.found and jump.cube == following.cube and jump.normal == following.normal
+	for candidate in level.cells:
+		if candidate.normal != special.normal:
+			continue
+		var forward := special.cube - candidate.cube
+		if forward.length_squared() != 1:
+			continue
+		var jump := SurfaceRules.jump_result(cell_map, candidate.cube, candidate.normal, forward)
+		if jump.found and jump.cube == special.cube + forward and jump.normal == special.normal:
+			return true
+	return false
 
 func _objectives_reachable(level: LevelDefinition, cell_map: Dictionary) -> bool:
 	var queue: Array[Dictionary] = [{"cube": level.spawn_cube, "normal": level.spawn_normal, "forward": level.spawn_forward}]
@@ -164,10 +239,7 @@ func _test_art_pipeline() -> void:
 		"res://assets/3d/environment/w3_block_a.glb": 4000,
 		"res://assets/3d/environment/w3_block_b.glb": 4000,
 		"res://assets/3d/environment/w3_block_c.glb": 4000,
-		"res://assets/3d/environment/w1_tile_normal.glb": 3000,
-		"res://assets/3d/environment/w2_tile_normal.glb": 3500,
 		"res://assets/3d/environment/w2_tile_ice.glb": 4000,
-		"res://assets/3d/environment/w3_tile_normal.glb": 3000,
 		"res://assets/3d/environment/w3_tile_hazard.glb": 4000,
 		"res://assets/3d/environment/w3_tile_collapse.glb": 3500,
 		"res://assets/3d/environment/sky_core.glb": 4500,
@@ -175,11 +247,12 @@ func _test_art_pipeline() -> void:
 		"res://assets/3d/environment/portal_w1.glb": 5500,
 		"res://assets/3d/environment/portal_w2.glb": 5500,
 		"res://assets/3d/environment/portal_w3.glb": 5500,
-		"res://assets/3d/environment/aeri.glb": 7000,
+		"res://assets/3d/environment/aeri.glb": 12000,
 		"res://assets/3d/environment/cloud_bank_a.glb": 8000,
 		"res://assets/3d/environment/cloud_bank_b.glb": 8000,
 		"res://assets/3d/environment/cloud_bank_c.glb": 8000,
-		"res://assets/3d/environment/landmark_w1.glb": 14000,
+		"res://assets/3d/environment/cloudy_mountain_w1.glb": 50000,
+		"res://assets/3d/environment/landmark_w1.glb": 30000,
 		"res://assets/3d/environment/landmark_w2.glb": 14000,
 		"res://assets/3d/environment/landmark_w3.glb": 14000
 	}
@@ -248,3 +321,25 @@ func _test_gameplay_boot() -> void:
 	_expect(gameplay.player.visual != null and gameplay.player.visual.name == "Aeri", "Gameplay must use the authored Aeri model")
 	_expect(gameplay.board.exit_holder != null, "Gameplay must instantiate the authored world portal")
 	gameplay.free()
+
+func _test_authored_playthroughs() -> void:
+	for level_id in ["W1L01", "W1L05", "W1L10", "W2L01", "W2L10", "W3L01", "W3L10"]:
+		var level := LevelCatalog.get_level(level_id)
+		var solution: Dictionary = LEVEL_SOLVER.solve(level)
+		var gameplay := Gameplay.new()
+		gameplay.setup(level)
+		gameplay.process_mode = Node.PROCESS_MODE_DISABLED
+		gameplay.audio_enabled = false
+		root.add_child(gameplay)
+		await process_frame
+		await process_frame
+		for action in solution.actions:
+			if gameplay.player.state == GridMover.MoveState.DEAD:
+				break
+			gameplay.player.request_action(action)
+			while gameplay.player.state != GridMover.MoveState.IDLE and gameplay.player.state != GridMover.MoveState.DEAD:
+				gameplay.player._update_action(2.0)
+		_expect(gameplay.player.state != GridMover.MoveState.DEAD, "%s solver path must not fall in live gameplay" % level_id)
+		_expect(gameplay.keys_collected == level.keys.size(), "%s solver path must collect every required key" % level_id)
+		_expect(not gameplay.running, "%s solver path must activate and reach the exit" % level_id)
+		gameplay.free()

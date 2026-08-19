@@ -27,13 +27,11 @@ const BLOCK_SCENES := {
 }
 
 const TILE_SCENES := {
-	1: {"normal": preload("res://assets/3d/environment/w1_tile_normal.glb")},
+	1: {},
 	2: {
-		"normal": preload("res://assets/3d/environment/w2_tile_normal.glb"),
 		"ice": preload("res://assets/3d/environment/w2_tile_ice.glb")
 	},
 	3: {
-		"normal": preload("res://assets/3d/environment/w3_tile_normal.glb"),
 		"hazard": preload("res://assets/3d/environment/w3_tile_hazard.glb"),
 		"collapse": preload("res://assets/3d/environment/w3_tile_collapse.glb"),
 		"ice": preload("res://assets/3d/environment/w2_tile_ice.glb")
@@ -47,6 +45,76 @@ const PORTAL_SCENES := {
 	2: preload("res://assets/3d/environment/portal_w2.glb"),
 	3: preload("res://assets/3d/environment/portal_w3.glb")
 }
+const PORTAL_FLIPBOOK_FRAMES := [
+	preload("res://assets/vfx/portal_flipbook/portal_0001.png"),
+	preload("res://assets/vfx/portal_flipbook/portal_0002.png"),
+	preload("res://assets/vfx/portal_flipbook/portal_0003.png"),
+	preload("res://assets/vfx/portal_flipbook/portal_0004.png"),
+	preload("res://assets/vfx/portal_flipbook/portal_0005.png"),
+	preload("res://assets/vfx/portal_flipbook/portal_0006.png"),
+	preload("res://assets/vfx/portal_flipbook/portal_0007.png"),
+	preload("res://assets/vfx/portal_flipbook/portal_0008.png")
+]
+
+const PORTAL_VFX_SHADER := """
+shader_type spatial;
+render_mode unshaded, blend_mix, cull_disabled, depth_draw_never;
+
+uniform vec4 portal_color : source_color = vec4(0.005, 1.0, 0.0, 1.0);
+uniform float intensity = 0.16;
+uniform float phase = 0.0;
+varying vec3 fog_position;
+
+float hash(vec2 p) {
+	p = fract(p * vec2(123.34, 456.21));
+	p += dot(p, p + 45.32);
+	return fract(p.x * p.y);
+}
+
+float noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+		mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+
+float fbm(vec2 p) {
+	float value = 0.0;
+	float amplitude = 0.5;
+	for (int i = 0; i < 5; i++) {
+		value += noise(p) * amplitude;
+		p = p * 2.03 + vec2(17.1, 9.2);
+		amplitude *= 0.5;
+	}
+	return value;
+}
+
+void vertex() {
+	vec2 volume_coord = vec2(VERTEX.x * 4.0 + VERTEX.z * 2.1, VERTEX.y * 4.0 - VERTEX.z * 1.7);
+	float deformation = fbm(volume_coord + vec2(TIME * 0.16 + phase, -TIME * 0.13)) - 0.5;
+	deformation += sin(dot(VERTEX, vec3(17.0, 23.0, 11.0)) + TIME * 2.6 + phase) * 0.07;
+	VERTEX += NORMAL * deformation * 0.26;
+	fog_position = VERTEX;
+}
+
+void fragment() {
+	vec2 flow_uv = vec2(fog_position.x * 3.7 + fog_position.z * 2.1, fog_position.y * 3.5 - fog_position.z * 1.6);
+	flow_uv += vec2(TIME * 0.19 + phase, -TIME * 0.24);
+	float broad_noise = fbm(flow_uv);
+	float fine_noise = fbm(vec2(fog_position.x * 8.0 - fog_position.y * 3.0 - TIME * 0.43, fog_position.z * 7.0 + fog_position.y * 4.0 + TIME * 0.31 + phase));
+	float rolling = sin(dot(fog_position, vec3(19.0, 13.0, 17.0)) + TIME * 4.2 + broad_noise * 8.0) * 0.5 + 0.5;
+	float veins = smoothstep(0.42, 0.93, broad_noise + fine_noise * 0.58 + rolling * 0.18);
+	float rim = pow(1.0 - abs(dot(normalize(NORMAL), normalize(VIEW))), 2.2);
+	float flicker = 0.82 + 0.18 * sin(TIME * 8.0 + broad_noise * 12.0 + phase);
+	float density = (0.20 + broad_noise * 0.38 + veins * 0.42 + rim * 0.12) * flicker * intensity;
+	float color_energy = clamp(0.28 + veins * 0.58 + rim * 0.14, 0.0, 1.0);
+	vec3 fog_color = mix(portal_color.rgb * 0.20, portal_color.rgb * 0.88, color_energy);
+	ALBEDO = fog_color;
+	EMISSION = fog_color * density * 0.48;
+	ALPHA = clamp(density * 0.90, 0.015, 0.54) * portal_color.a;
+}
+"""
 
 var cells: Dictionary = {}
 var key_pickups: Dictionary = {}
@@ -56,7 +124,7 @@ var exit_holder: Node3D
 var cube_meshes: Dictionary = {}
 var world := 1
 var theme_colors := {
-	1: [Color("d8a45f"), Color("40352d"), Color("7df1ae")],
+	1: [Color("58dfff"), Color("6a765f"), Color("b9f8ff")],
 	2: [Color("55c8e2"), Color("30386f"), Color("d8f8ff")],
 	3: [Color("e5674f"), Color("4c203b"), Color("ffd46a")]
 }
@@ -131,10 +199,18 @@ func collapse_cell(cube: Vector3i, normal: Vector3i) -> void:
 func set_exit_active(active: bool) -> void:
 	if not is_instance_valid(exit_holder):
 		return
-	_set_portal_materials(exit_holder, active)
+	var was_active := bool(exit_holder.get_meta("portal_active", false))
+	exit_holder.set_meta("portal_active", active)
+	_set_portal_vfx(active)
 	var glow := exit_holder.get_node_or_null("Glow") as OmniLight3D
 	if glow != null:
-		glow.light_energy = 2.1 if active else 0.08
+		if active and not was_active:
+			glow.light_energy = 0.10
+			var flare := glow.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			flare.tween_property(glow, "light_energy", 2.4, 0.16)
+			flare.tween_property(glow, "light_energy", 1.5, 0.58)
+		else:
+			glow.light_energy = 1.5 if active else 0.08
 	var tween := exit_holder.create_tween()
 	tween.tween_property(exit_holder, "scale", Vector3.ONE * (1.08 if active else 1.0), 0.30).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
@@ -153,7 +229,9 @@ func _create_cube(cube_position: Vector3i) -> void:
 
 func _create_face_plate(cell: SurfaceCell) -> void:
 	var world_tiles: Dictionary = TILE_SCENES[world]
-	var scene := world_tiles.get(cell.type, world_tiles["normal"]) as PackedScene
+	var scene := world_tiles.get(cell.type) as PackedScene
+	if scene == null:
+		return
 	var plate := scene.instantiate() as Node3D
 	plate.name = "Face_%s" % cell.key().replace(",", "_").replace("|", "_")
 	plate.position = Vector3(cell.cube) * TILE_SIZE + Vector3(cell.normal) * (TILE_SIZE * 0.5)
@@ -195,14 +273,18 @@ func _create_exit(key: String) -> void:
 	var cell := cell_from_key(key)
 	if cell == null:
 		return
-	exit_holder = (PORTAL_SCENES[world] as PackedScene).instantiate() as Node3D
+	exit_holder = Node3D.new()
 	exit_holder.name = "Exit"
 	exit_holder.position = Vector3(cell.cube) * TILE_SIZE + Vector3(cell.normal) * TILE_SIZE * 0.5
 	exit_holder.basis = SurfaceRules.basis_from(cell.normal, _fallback_forward(cell.normal))
+	var portal_model := (PORTAL_SCENES[world] as PackedScene).instantiate() as Node3D
+	portal_model.name = "AuthoredPortalFrame"
+	exit_holder.add_child(portal_model)
+	_add_portal_vfx(exit_holder)
 	var glow := OmniLight3D.new()
 	glow.name = "Glow"
-	glow.position = Vector3(0, 0.95, 0)
-	glow.light_color = theme_colors[world][2]
+	glow.position = Vector3(0, 0.88, 0)
+	glow.light_color = [Color("67eaff"), Color("67eaff"), Color("ff7a4d")][world - 1]
 	glow.light_energy = 0.08
 	glow.omni_range = 5.0
 	glow.shadow_enabled = false
@@ -212,26 +294,35 @@ func _create_exit(key: String) -> void:
 	breathe.tween_property(exit_holder, "rotation:y", 0.055, 1.8).from(-0.055)
 	breathe.tween_property(exit_holder, "rotation:y", -0.055, 1.8)
 
-func _set_portal_materials(root: Node, active: bool) -> void:
-	if root is MeshInstance3D:
-		var mesh_instance := root as MeshInstance3D
-		var visual_name := mesh_instance.name.to_lower()
-		var is_energy_surface := visual_name.contains("glass") or visual_name.contains("energy") or visual_name.contains("vortex") or visual_name.contains("core")
-		if is_energy_surface and mesh_instance.mesh != null:
-			for surface in range(mesh_instance.mesh.get_surface_count()):
-				if active:
-					mesh_instance.set_surface_override_material(surface, null)
-					continue
-				var source := mesh_instance.get_active_material(surface)
-				if not source is BaseMaterial3D:
-					continue
-				var material := (source as BaseMaterial3D).duplicate() as BaseMaterial3D
-				material.albedo_color = material.albedo_color.darkened(0.72)
-				material.emission_enabled = false
-				material.emission_energy_multiplier = 0.0
-				mesh_instance.set_surface_override_material(surface, material)
-	for child in root.get_children():
-		_set_portal_materials(child, active)
+func _add_portal_vfx(root: Node3D) -> void:
+	var frames := SpriteFrames.new()
+	frames.set_animation_speed("default", 11.0)
+	frames.set_animation_loop("default", true)
+	for texture in PORTAL_FLIPBOOK_FRAMES:
+		frames.add_frame("default", texture)
+	for index in range(PORTAL_FLIPBOOK_FRAMES.size() - 2, 0, -1):
+		frames.add_frame("default", PORTAL_FLIPBOOK_FRAMES[index])
+	var plasma := AnimatedSprite3D.new()
+	plasma.name = "BlenderPortalVFX"
+	plasma.sprite_frames = frames
+	plasma.animation = "default"
+	plasma.position = Vector3(0.0, 1.02, 0.0)
+	plasma.pixel_size = 0.0084
+	plasma.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	plasma.shaded = false
+	plasma.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	plasma.modulate = Color(1.0, 1.0, 1.0, 0.34)
+	plasma.play("default")
+	root.add_child(plasma)
+
+func _set_portal_vfx(active: bool) -> void:
+	if not is_instance_valid(exit_holder):
+		return
+	var plasma := exit_holder.get_node_or_null("BlenderPortalVFX") as AnimatedSprite3D
+	if plasma == null:
+		return
+	plasma.modulate = Color(1.0, 1.0, 1.0, 1.0 if active else 0.34)
+	plasma.speed_scale = 1.0 if active else 0.36
 
 func _spawn_collect_burst(world_position: Vector3, color: Color) -> void:
 	var burst := Node3D.new()
